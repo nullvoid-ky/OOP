@@ -1,0 +1,38 @@
+Activity:   ร้านขายต้นไม้
+Object:
+    Place:
+        Attribute:
+            - Sign
+            - Shelf
+            - Cashier
+        Behavior:
+            - __init__
+            - Move Shelf
+            - On Cashier
+            - Off Cashier
+    Staff:
+        Attribute:
+            - Name
+            - Role
+        Behavior:
+            - __init__
+            - del
+    Item:
+        Attribute:
+            - Name
+            - Price
+            - Desc
+            - Type
+        Behavior
+            - __init__
+            - Edit Type
+    CEO:
+        Attribute:
+            - Number
+            - Name
+            - Role
+            - Profession
+        Behavior
+            - __init__
+            - del
+
