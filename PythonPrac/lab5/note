@@ -1,0 +1,5 @@
+isinstance(student, Student)
+
+same as
+
+type(student) == Student
