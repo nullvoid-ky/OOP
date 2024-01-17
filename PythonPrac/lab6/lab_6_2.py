@@ -1,36 +1,20 @@
 # Class Code
-class Transaction:
-    def __init__(self, type, atm, money, total):
-        self.__type = type
-        self.__atm_id = atm
-        self.__money = money
-        self.__total = total
-    
-    @property
-    def type (self):
-        return self.__type
-    
-    @property
-    def atm_id (self):
-        return self.__atm_id
-    
-    @property
-    def money (self):
-        return self.__money
-    
-    @property
-    def total (self):
-        return self.__total
-
+ 
 class Card:
     def __init__(self, id):
         self.__id = id
         self.__pin = None
+        self.__account_id = None
         
     @property
     def id(self):
         return self.__id
     
+    def update_account_id(self, new_account_id):
+        self.__account_id = new_account_id
+    def update_pin(self, new_pin):
+        self.__pin = new_pin
+
 class Account:
     def __init__(self, id, card : Card, money):
         self.__id = id
@@ -52,45 +36,26 @@ class Account:
 
     def show_transaction(self):
         for transaction in self.__transaction_list:
-            print (transaction.type, "-ATM:", transaction.atm_id, end="")
+            print (transaction.type, "-ATM:", transaction.atm_id,sep="", end="")
             if transaction.type == "T":
-                print("+", end="")
+                print("+", end="",sep="")
             print("-", transaction.money, "-", transaction.total, sep="")
 
     @property
     def money(self):
         return self.__money
-    
-    def update_money(self, money):
-        self.__money += money
-
     @property
     def card(self):
         return self.__card
     
-class User:
-    def __init__(self, id, name):
-        self.__id = id
-        self.__name = name
-        self.__account_list = []
+    def change_pin(self, old_pin, new_pin):
+        if old_pin is not None:
+            if new_pin is not old_pin:
+                return "Incorrect PIN"
+        self.card.update_pin(new_pin)
+        return "Success"
 
-    @property
-    def account_list(self):
-        return self.__account_list
     
-    def add_account(self, account : Account):
-        self.__account_list.append(account)
-        return ("Added " + account.id + " !")
-    def set_pin(self, account, old_pin, new_pin):
-        if isinstance(new_pin, str):
-            for ch in new_pin:
-                if ord(ch) < '0' or ord(ch) < '9':
-                    return "Error"
-        if account.card.pin == old_pin or account.card.pin is None:
-            account.card.update_pin(new_pin)
-            return "Updated new PIN !"
-        return "Error"
-
 class Atm:
     def __init__(self, id, money):
         self.__id = id
@@ -104,6 +69,9 @@ class Atm:
     def id(self):
         return self.__id
 
+    def update_money(self, money):
+        self.__money += money
+
     def insert_card(self, bank, card_id, pin):
         for user in bank.user_list:
             for account in user.account_list:
@@ -111,75 +79,150 @@ class Atm:
                     if account.card.pin == pin:
                         return account
         return None
-
-    def deposit(self, account : Account, money : int):
-        if money <= 0 or account.money < money:
-            return "Error"
-        account.update_money(+money)
-        atm.money -= money
-        atm.add_transaction("D", atm, money, account)
-        return "Success"
     
+    # def add_transaction(self, type, atm, money, account):
+    #     transaction = Transaction(type, atm.id, money, account.money)
+    #     account.transaction_list.append(transaction)
 
-    def withdraw(self, account : Account, money : int):
-        if money <= 0 or account.money < money:
-            return "Error"
-        account.update_money(-money)
-        atm.money += money
-        atm.add_transaction("W", atm, money, account)
-        return "Success"
-        
-    def transfer(self, old : Account, new : Account, money : int):
-        if money <= 0 or old.money < money:
-            return "Error"
-        old.update_money(-money)
-        new.update_money(money)
-        self.add_transaction("T", money, old)
-        self.add_transaction("T", money, new)
-        return "Success"
+class User:
+    def __init__(self, id, name):
+        self.__id = id
+        self.__name = name
+        self.__account_list = []
 
-    def add_transaction(self, type, money, account):
-        transaction = Transaction(type, self, money, account.money)
-        account.transaction_list.append(transaction)
+    @property
+    def account_list(self):
+        return self.__account_list
+    @property
+    def id(self):
+        return self.__id
+    
+    def add_account(self, bank, account : Account):
+        self.__account_list.append(account)
+        account.card.update_account_id(account.id)
+        bank.update_account_data(account)
+        return bank.console_print( bank.account_data_list, account, "Account")
 
 class Bank:
-    def __init__(self) :
+    def __init__(self, id) :
         self.__user_list = []
         self.__atm_list = []
+        self.__account_data_list = []
+        self.__add_data_history = []
+        self.__id = id
     
     @property
-    def atm_list(self):
-        return self.__atm_list
+    def id(self):
+        return self.__id   
+    
+    # @property
+    # def atm_list(self):
+    #     return self.__atm_list
         
-    @property
-    def user_list(self):
-        return self.__user_list
+    # @property
+    # def user_list(self):
+    #     return self.__user_list
     
+    @property
+    def account_data_list(self):
+        return self.__account_data_list
+    
+    def console_print(self, item_list, item, item_name):
+        return f"console.log | {self.console_print_data(item_list, item, item_name)}"
+
+    def console_print_data(self, item_list, item, item_name):
+        number = len(item_list)
+        error_text = f"<====== Error \t  #{number}\tid :{self.id} ======>\n\t - {item_name}: "
+        if item_name == "Data":
+            return f"<====== Done {item_name} #{number} \tid :{item.id} ======>"
+        elif item_name == "Error_01": return f"{error_text} Nothing Changed\n"
+        elif item_name == "Error_02": return f"{error_text} Existed Data\n"
+        elif item_name == "Error_03": return f"{error_text} Exited Account\n"
+        elif item_name == "Error_04": return f"{error_text} Exited ATM\n"
+        elif item_name == "Error_05": return f"{error_text} Incorrect Data Format\n"
+
+        return f"Added :{item_name} \t#{number} \tid :{item.id}"
+
+
+    def update_account_data(self, account):
+        self.__account_data_list.append(account)
+
     def add_user(self, user : User):
         self.__user_list.append(user)
+        return self.console_print(self.__user_list, user, "User")
+    
     def add_atm(self, atm : Atm):
         self.__atm_list.append(atm)
+        return self.console_print(self.__atm_list, atm, "Atm")
+    
+    def add_atm_money(self, atm : Atm, money : int):
+        atm.update_money(money)
+
     def add_data(self, user, atm):
-        i = 0
-        # print()
-        for k, v in user.items():
-            self.add_user(User(k, v[0]))
-            self.__user_list[i].add_account(Account(v[1], Card(v[2]), v[3]))
-            # print(User(k, v[0]).name)
-            # print(Account(v[1], Card(v[2]), v[3]).id)
-            i+=1
-        # print()
-        for k, v in atm.items():
-            self.add_atm(Atm(k, v))
-        #     print(Atm(k, v).id)
-        # print()
+        add_count = 0
+        if user is atm is None:
+            self.__add_data_history.append(add_count)
+            return self.console_print(self.__add_data_history, self, "Error_01")
+        
+        """
+        check data format before add
+        return self.console_print(self.__add_data_history, self, "Error_05")
+        """
+        
+        if user is not None:
+            for k, v in user.items():
+                valid = True
+                for bank_user in self.__user_list:
+                    if bank_user.id is k:
+                        valid = False
+                        break
+                if valid:
+                    print(self.add_user(User(k, v[0])))
+                    add_count+=1
+            for k, v in user.items():
+                valid = True
+                for bank_user in self.__user_list:
+                    if bank_user.id is k:
+                        for account in self.account_data_list:
+                            if account.id is v[1]:
+                                valid = False
+                if valid:
+                    print(bank_user.add_account(self, Account(v[1], Card(v[2]), v[3])))
+                    add_count+=1
+                else:
+                    self.__add_data_history.append(add_count)
+                    return self.console_print(self.__add_data_history, self, "Error_03")
+        if atm is not None:
+            for k, v in atm.items():
+                valid = True
+                for atm in self.__atm_list:
+                    if atm.id is k:
+                        valid = False
+                if valid :
+                    print(self.add_atm(Atm(k, v)))
+                    add_count+=1
+                else:
+                    self.__add_data_history.append(add_count)
+                    return self.console_print(self.__add_data_history, self, "Error_04")
+        self.__add_data_history.append(add_count)
+        if add_count == 0:
+            return {self.console_print(self.__add_data_history, self, "Error_02")}
+        return f"{self.console_print(self.__add_data_history, self, "Data")}\n"
 
 ##################################################################################
 
 # กำหนดรูปแบบของ user ดังนี้ {รหัสประชาชน : [ชื่อ, หมายเลขบัญชี, จำนวนเงิน, หมายเลข ATM ]}
 user ={'1-1101-12345-12-0':['Harry Potter','1234567890','12345',20000],
-       '1-1101-12345-13-0':['Hermione Jean Granger','0987654321','12346',1000]}
+       '1-1101-12345-13-0':['Hermione Jean Granger','0987654321','12346',1000],
+       '1-1101-12345-12-4':['Kanyok Handsome','32178956409','43121',10]}
 
+user2 ={'1-2222-12345-10-4':['Nana Narak','1234567890','11109',12300],
+       '1-2222-10045-13-0':['Nunu is Nana','0828983663','12346',444],
+       '1-2222-12345-12-4':['Nullvoid Debateyourdense','32178956409','43121',40]}
+user3 = {'1-1101-12345-12-0':['Harry Potter','010101','12345',20000]}
+user4 = {'1-1101-32221-12-0':['Nani Potter','010101','12345',20000]}
+user5 = {'1-1101-32221-12-0':['Nani Potter','010201','12346',20000]}
+user6 = {'1-1101-32221-12-0':['Nani Potter']}
 atm ={'1001':1000000,'1002':200000}
 
 # kanyok_bank.add_user(User("1-1101-12345-12-0", "Harry Potter"))
@@ -191,13 +234,17 @@ atm ={'1001':1000000,'1002':200000}
 # TODO :   return เป็น instance ของธนาคาร
 # TODO :   และสร้าง instance ของเครื่อง ATM จำนวน 2 เครื่อง
 
-def create_instance():
-    bank = Bank()
-    bank.add_data(user, atm)
+def create_instance(bank_id):
+    bank = Bank(bank_id)
+    # print(bank.add_data(user6,atm))
+    print(bank.add_data(user,atm))
+    # print(bank.add_data(user6,atm))
+    # print(bank.add_data(user6,atm))
+    # print(bank.add_data(user6,atm))
+    # print(bank.add_data(user6,atm))
     return bank
-my_bank = create_instance()
-
-
+my_bank = create_instance("101")
+"""
 # TODO 2 : เขียน method ที่ทำหน้าที่สอดบัตรเข้าเครื่อง ATM มี parameter 2 ตัว ได้แก่ 
 # TODO     1) instance ของธนาคาร
 # TODO     2) atm_card เป็นหมายเลขของ atm_card
@@ -238,10 +285,11 @@ my_bank = create_instance()
 print("Test Case #1")
 def testcase_1(bank, card_id, pin):
     if (my_bank.atm_list[0].insert_card(bank, card_id, pin) != None ):
-        print(my_bank.atm_list[0].insert_card(bank, card_id, pin).id, my_bank.atm_list[0].insert_card(bank, card_id).card.id, "Success")
+        print(my_bank.atm_list[0].insert_card(bank, card_id, pin).id, my_bank.atm_list[0].insert_card(bank, card_id, pin).card.id, "Success")
     else:
         print("Error")
-testcase_1(my_bank, "12345", "1245")
+testcase_1_pin = None
+testcase_1(my_bank, "12345" , testcase_1_pin)
 print()
 
 
@@ -327,3 +375,4 @@ print()
 # Hermione transaction : W-ATM:1002-500-1500
 # Hermione transaction : T-ATM:1002-+10000-11500
 my_bank.user_list[1].account_list[0].show_transaction()
+"""
