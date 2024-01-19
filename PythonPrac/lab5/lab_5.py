@@ -2,13 +2,27 @@ class Student:
     def __init__(self, id : str, name : str):
         self.__id = id
         self.__name = name
+    
+    def getName(self):
+        return self.__name
 
-    @property
-    def id(self):
-        return self.__id
+
+    # @property
+    # def id(self):
+    #     return self.__id
+
     @property
     def name(self):
         return self.__name
+    @name.setter
+    def name(self, newName):
+        self.name = newName
+    
+    def setName (self, newName):
+        self.__name = newName
+    # void Student::setName(string name){
+    #     this->name = name;
+    # }
 
 
 class Subject:
