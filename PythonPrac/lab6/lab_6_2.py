@@ -168,7 +168,7 @@ class Bank:
         check data format before add
         return self.console_print(self.__add_data_history, self, "Error_05")
         """
-        
+
         if user is not None:
             for k, v in user.items():
                 valid = True
@@ -236,15 +236,15 @@ atm ={'1001':1000000,'1002':200000}
 
 def create_instance(bank_id):
     bank = Bank(bank_id)
-    # print(bank.add_data(user6,atm))
     print(bank.add_data(user,atm))
+    # print(bank.add_data(user6,atm))
     # print(bank.add_data(user6,atm))
     # print(bank.add_data(user6,atm))
     # print(bank.add_data(user6,atm))
     # print(bank.add_data(user6,atm))
     return bank
 my_bank = create_instance("101")
-"""
+
 # TODO 2 : เขียน method ที่ทำหน้าที่สอดบัตรเข้าเครื่อง ATM มี parameter 2 ตัว ได้แก่ 
 # TODO     1) instance ของธนาคาร
 # TODO     2) atm_card เป็นหมายเลขของ atm_card
@@ -375,4 +375,3 @@ print()
 # Hermione transaction : W-ATM:1002-500-1500
 # Hermione transaction : T-ATM:1002-+10000-11500
 my_bank.user_list[1].account_list[0].show_transaction()
-"""
