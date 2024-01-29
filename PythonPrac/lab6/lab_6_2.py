@@ -211,11 +211,14 @@ class Bank:
             self.__add_data_history.append(add_count)
             return self.console_print(self.__add_data_history, self, "Error_01")
         
-        """
-        check data format before add
-        return self.console_print(self.__add_data_history, self, "Error_05")
-        """
-        
+        if user is not None:
+            for k, v in user.items():
+                if not isinstance(k, str) \
+                    or not isinstance(v, list) \
+                    or not len(v) == 4 :
+                      return self.console_print(self.__add_data_history, self, "Error_05")
+          
+    
         if user is not None:
             for k, v in user.items():
                 valid = True
@@ -256,7 +259,7 @@ class Bank:
         self.__add_data_history.append(add_count)
         if add_count == 0:
             return {self.console_print(self.__add_data_history, self, "Error_02")}
-        return f"{self.console_print(self.__add_data_history, self, "Data")}\n"
+        return f"{self.console_print(self.__add_data_history, self, 'Data')}\n"
 
 ##################################################################################
 
@@ -264,13 +267,13 @@ class Bank:
 user ={'1-1101-12345-12-0':['Harry Potter','1234567890','12345',20000],
        '1-1101-12345-13-0':['Hermione Jean Granger','0987654321','12346',1000]}
 
-# user2 ={'1-2222-12345-10-4':['Nana Narak','1234567890','11109',12300],
-#        '1-2222-10045-13-0':['Nunu is Nana','0828983663','12346',444],
-#        '1-2222-12345-12-4':['Nullvoid Debateyourdense','32178956409','43121',40]}
-# user3 = {'1-1101-12345-12-0':['Harry Potter','010101','12345',20000]}
-# user4 = {'1-1101-32221-12-0':['Nani Potter','010101','12345',20000]}
-# user5 = {'1-1101-32221-12-0':['Nani Potter','010201','12346',20000]}
-# user6 = {'1-1101-32221-12-0':['Nani Potter']}
+user2 ={'1-2222-12345-10-4':['Nana Narak','1234567890','11109',12300],
+       '1-2222-10045-13-0':['Nunu is Nana','0828983663','12346',444],
+       '1-2222-12345-12-4':['Nullvoid Debateyourdense','32178956409','43121',40]}
+user3 = {'1-1101-12345-12-0':['Harry Potter','010101','12345',20000]}
+user4 = {'1-1101-32221-12-0':['Nani Potter','010101','12345',20000]}
+user5 = {'1-1101-32221-12-0':['Nani Potter','010201','12346',20000]}
+user6 = {'1-1101-32221-12-0':['Nani Potter']}
 atm ={'1001':1000000,'1002':200000}
 
 # kanyok_bank.add_user(User("1-1101-12345-12-0", "Harry Potter"))
@@ -285,17 +288,13 @@ atm ={'1001':1000000,'1002':200000}
 def create_instance(bank_id):
     bank = Bank(bank_id)
     print(bank.add_data(user,atm))
-    # print(bank.add_data(user6,atm))
-    # print(bank.add_data(user6,atm))
-    # print(bank.add_data(user6,atm))
-    # print(bank.add_data(user6,atm))
-    # print(bank.add_data(user6,atm))
+    print(bank.add_data(user6,atm))
     return bank
 my_bank = create_instance("101")
-
 atm_1 = my_bank.atm_list[0]
 atm_2 = my_bank.atm_list[1]
 
+exit()
 # def debug():
 #     print()
 #     my_bank.show_all_data()
