@@ -19,7 +19,7 @@ class Card:
     def update_pin(self, new_pin):
         self.__pin = new_pin
 
-class Account:
+class Account():
     def __init__(self, id, card : Card, money):
         self.__id = id
         self.__card = card
@@ -147,12 +147,17 @@ class Bank:
         self.__user_list = []
         self.__atm_list = []
         self.__account_data_list = []
-        self.__add_data_history = []
+        self.__adding_log_count = []
+        self.__add_log = []
         self.__id = id
     
     @property
     def id(self):
         return self.__id   
+    
+    @property
+    def add_log(self):
+        return self.__add_log   
     
     @property
     def atm_list(self):
@@ -207,29 +212,35 @@ class Bank:
 
     def add_data(self, user, atm):
         add_count = 0
+        ################################################################
+        #                   Check data format (Error Message)          #
+        ################################################################
         if user is atm is None:
-            self.__add_data_history.append(add_count)
-            return self.console_print(self.__add_data_history, self, "Error_01")
+            self.__adding_log_count.append(add_count)
+            return self.console_print(self.__adding_log_count, self, "Error_01")
         
         if user is not None:
             for k, v in user.items():
                 if not isinstance(k, str) \
                     or not isinstance(v, list) \
                     or not len(v) == 4 :
-                      return self.console_print(self.__add_data_history, self, "Error_05")
-          
-    
+                      return self.console_print(self.__adding_log_count, self, "Error_05")
+        ################################################################
+
+
         if user is not None:
-            for k, v in user.items():
+            for k, v in user.items(): # k is user_id, v is [username, acc_id, card_id, money]
                 valid = True
                 for bank_user in self.__user_list:
                     if bank_user.id is k:
                         valid = False
                         break
                 if valid:
-                    print(self.__add_user(User(k, v[0])))
+                    log = self.__add_user(User(k, v[0]))
+                    self.__add_log.append(log)
+                    print(log)
                     add_count+=1
-            for k, v in user.items():
+            for k, v in user.items(): # k is user_id, v is [username, acc_id, card_id, money]
                 valid = True
                 this_user = None
                 for bank_user in self.__user_list:
@@ -239,27 +250,30 @@ class Bank:
                             if account.id is v[1]:
                                 valid = False
                 if valid:
-                    print(this_user.add_account(self, Account(v[1], Card(v[2]), v[3])))
+                    log = this_user.add_account(self, Account(v[1], Card(v[2]), v[3]))
+                    print(log)
+                    self.__add_log.append(log)
                     add_count+=1
                 else:
-                    self.__add_data_history.append(add_count)
-                    return self.console_print(self.__add_data_history, self, "Error_03")
+                    self.__adding_log_count.append(add_count)
+                    return self.console_print(self.__adding_log_count, self, "Error_03")
         if atm is not None:
-            for k, v in atm.items():
-                valid = True
+            for k, v in atm.items(): # k is atm_id, v is atm_money
                 for atm in self.__atm_list:
                     if atm.id is k:
                         valid = False
                 if valid :
-                    print(self.__add_atm(Atm(k, v)))
+                    log = self.__add_atm(Atm(k, v))
+                    self.__add_log.append(log)
+                    print(log)
                     add_count+=1
                 else:
-                    self.__add_data_history.append(add_count)
-                    return self.console_print(self.__add_data_history, self, "Error_04")
-        self.__add_data_history.append(add_count)
+                    self.__adding_log_count.append(add_count) # 
+                    return self.console_print(self.__adding_log_count, self, "Error_04")
+        self.__adding_log_count.append(add_count)
         if add_count == 0:
-            return {self.console_print(self.__add_data_history, self, "Error_02")}
-        return f"{self.console_print(self.__add_data_history, self, 'Data')}\n"
+            return {self.console_print(self.__adding_log_count, self, "Error_02")}
+        return f"{self.console_print(self.__adding_log_count, self, 'Data')}\n"
 
 ##################################################################################
 
@@ -293,7 +307,6 @@ def create_instance(bank_id):
 my_bank = create_instance("101")
 atm_1 = my_bank.atm_list[0]
 atm_2 = my_bank.atm_list[1]
-
 exit()
 # def debug():
 #     print()
