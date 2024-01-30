@@ -1,11 +1,46 @@
 class Bank:
 
+    user_count = 0
+    atm_count = 0
+    seller_count = 0
+
     def __init__(self,name):
         self.__name=name
         self.__user_list = []
-        self.__card_list = []
         self.__atm_list = []
         self.__seller_list = []
+
+    def send_message(self, message_type, message):
+        if message_type == 0:
+            return ("bank_message: Error "+message)
+        elif message_type == 1:
+            return ("bank_message: Success"+message)
+        else:
+            return ("bank_message: no message text")
+
+    def add_seller(self, seller):
+        if not isinstance(seller, Seller):
+            return Bank.send_message(0, "add_seller <seller >not Seller instance")
+        self.__seller_list += [seller]
+
+    def add_atm_machine(self, atm):
+        if not isinstance(atm, ATM_machine):
+            return Bank.send_message(0, "add_atm <atm> not ATM_machine instance")
+        self.__atm_list += [atm]
+        return Bank.send_message(1, "add_atm <atm> ")
+
+    def add_user(self, user):
+        if not isinstance(user, User):
+            return Bank.send_message(0, "add_user <user >not User instance")
+        self.__user_list += [user]
+
+    def search_user_from_id(self, citizen_id):
+        if not (isinstance(citizen_id, str) and len(citizen_id) == 17):
+            return Bank.send_message(0, "search_user_from_id citizen_id not id string")
+        for user in self.__user_list:
+            if user.validate_citizen_id(citizen_id):
+                return user
+        return None
 
 class User:
     def __init__(self, citizen_id, name):
@@ -13,13 +48,68 @@ class User:
         self.__name = name
         self.__account_list = []
 
+    def validate_citizen_id(self, citizen_id):
+        return self.__citizen_id == citizen_id
+
+    def add_account(self, account):
+        if not isinstance(account, Account):
+            return Bank.send_message(0, "add_account account not Account instance")
+        self.__account_list += [account]
+
+    def search_account(self, account_no):
+        if not (isinstance(account_no, str) and len(account_no) == 10):
+            return Bank.send_message(0, "add_account account_no not number string")
+        for account in self.__account_list:
+            if account.validate_account_no(account_no):
+                return account
+        return None
+    
+    
 class Account:
     def __init__(self, account_no, user, amount):
         self.__account_no = account_no
         self.__user = user
         self.__amount = amount
         self.__transaction = []
+        self.__card = None
 
+    def validate_account_no(self, account_no):
+        return self.__account_no == account_no
+    
+    def add_card(self, card):
+        if not isinstance(card, Card):
+            return Bank.send_message(0, "add_card card not Card instance")
+        self.__card = card
+
+    def update_amount_in_account(self, money):
+        self.__amount += money
+
+    def __add__(self, money):
+        self.update_amount_in_account(+money)
+        
+    def __sub__(self, money):
+        if self.__amount < money:
+            return Bank.send_message(0, "add_card card not Card instance")
+        self.update_amount_in_account(-money)
+        
+    def __rshift__(self, tuple_operand : tuple):
+
+
+        if not (isinstance(tuple_operand, tuple) and len(tuple_operand) == 2):
+            return Bank.send_message(0, " >> (__rshift__) tuple not Tuple instance")
+        target_account, money = tuple_operand
+        if self.__amount < money:
+            return Bank.send_message(0, " >> (__rshift__) self.__amount < transfer_money")
+        if not isinstance(target_account, Account):
+            return Bank.send_message(0, " >> (__rshift__) tuple[0] not Account instance")
+
+        if not (isinstance(tuple_operand, (int, float)) and tuple_operand > 0):
+            return Bank.send_message(0, " >> (__rshift__) tuple[1] not Int or Float instance")
+        
+        (new_account , money) = tuple_operand
+        self.update_amount_in_account(-money)
+        new_account.update_amount_in_account(+money)
+        
 class SavingAccount(Account):
 
     interest_rate = 0.5
@@ -45,6 +135,9 @@ class Card:
         self.__card_no = card_no
         self.__account = account
         self.__pin = pin
+    
+    def validate_card_pin(self, pin):
+        return self.__pin == pin
 
 class ATM_Card(Card):
 
@@ -67,12 +160,15 @@ class ATM_machine:
         return self.__atm_no
 
     def insert_card(self, card, pin):
-        if atm_card.pin == pin:
-            return "Success"
-        return None
-
+        if card.validate(pin):
+            return Bank.send_message(1, "Insert card successful")
+        return Bank.send_message(0, "Incorrect PIN")
+    
     def deposit(self, account, amount):
-        pass
+        account.update_amount_in_account(amount)
+        self.update_amount_in_atm(amount)
+        return Bank.send_message(1, "Deposit successful")
+    
 
     def withdraw(self, account, amount):
         pass
@@ -85,6 +181,11 @@ class Seller:
         self.__seller_no = seller_no
         self.__name = name
         self.__edc_list = []
+    
+    def add_edc(self, edc):
+        if not isinstance(edc, EDC_machine):
+            return Bank.send_message(0, "add_edc edc not EDC_machine instance")
+
 
 class EDC_machine:
     def __init__(self,edc_no,seller):
@@ -118,9 +219,13 @@ scb.add_user(User('1-1101-12345-12-0','Harry Potter'))
 scb.add_user(User('1-1101-12345-13-0','Hermione Jean Granger'))
 scb.add_user(User('9-0000-00000-01-0','KFC'))
 scb.add_user(User('9-0000-00000-02-0','Tops'))
-harry = scb.search_user_from_id('1-1101-12345-12-0')
+harry = scb.search_user_from_id('1-1101-12345-12-0') 
+
+
 harry.add_account(SavingAccount('1234567890', harry, 20000))
+
 harry_account = harry.search_account('1234567890')
+
 harry_account.add_card(ATM_Card('12345', harry, '1234'))
 hermione = scb.search_user_from_id('1-1101-12345-12-0')
 hermione.add_account(SavingAccount('0987654321',hermione,2000))
@@ -131,7 +236,6 @@ kfc = scb.search_user_from_id('9-0000-00000-01-0')
 kfc.add_account(SavingAccount('0000000321', kfc, 0))
 tops = scb.search_user_from_id('9-0000-00000-02-0')
 tops.add_account(SavingAccount('0000000322', tops, 0))
-
 # TODO 2 : สร้าง Instance ของเครื่อง ATM
 
 scb.add_atm_machine(ATM_machine('1001',1000000))
@@ -148,6 +252,11 @@ scb.add_seller(temp)
 
 # TODO 4 : สร้าง method ฝาก โดยใช้ __add__ ถอน โดยใช้ __sub__ และ โอนโดยใช้ __rshift__
 # TODO   : ทดสอบการ ฝาก ถอน โอน โดยใช้ + - >> กับบัญชีแต่ละประเภท
+
+
+#clear
+print("clear")
+exit()
 
 # TODO 5 : สร้าง method insert_card, deposit, withdraw และ transfer ที่ตู้ atm และเรียกผ่าน account อีกที
 # TODO   : ทดสอบโอนเงินระหว่างบัญชีแต่ละประเภท
