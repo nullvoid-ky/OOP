@@ -1,0 +1,96 @@
+gleek.app
+
+Card --<> Account
+Account --<> User
+Account --<> Bank
+User --<> Bank
+Atm --<> Bank
+Transaction --<> Account
+Transaction -.-> Atm
+
+Transaction
+	-type
+	-atm_id
+	-money
+	-total
+
+	+type()
+	+atm_id()
+	+money()
+	+total()
+
+
+Bank
+	-user_list
+	-atm_list
+	-account_data_list
+	-adding_log_count
+	-add_log
+	-id
+
+	+id()
+	+add_log()
+	+atm_list()
+	+user_list()
+	+account_data_list()
+
+	+show_all_data()
+	+console_print()
+	+console_print_data()
+	+updata_account_data()
+	-add_user()
+	-add_atm()
+	+add_data()
+
+User
+	-name
+	-id
+	-account_list
+
+	+account_list()
+	+id()
+
+	+add_account()
+
+
+Card
+	-id
+	-pin
+	-account_id
+
+	+id()
+	+account_id()
+
+	+update_account_id()
+	+check_pin()
+	+update_pin()
+
+Account
+	-id
+	-card
+	-money
+	-transaction_list
+
+	+id()
+	+money()
+	+card()
+	+transaction_list()
+
+	+update_money()
+	+show_transaction()
+	+change_pin()
+
+Atm
+	-id
+	-money
+	-bank
+
+	+money()
+	+id()
+
+	+update_money()
+	+insert_card()
+	+deposit()
+	+withdraw()
+	+transfer()
+	+add_transaction()
