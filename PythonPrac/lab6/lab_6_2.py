@@ -1,5 +1,26 @@
 # Class Code
- 
+class Transaction:
+    # Transaction(type, atm.id, money, account.money)
+    def __init__(self, type, atm_id, money, total):
+        self.__type = type
+        self.__atm_id = atm_id
+        self.__money = money
+        self.__total = total
+
+    @property
+    def type(self):
+        return self.__type
+    @property
+    def atm_id(self):
+        return self.__atm_id
+    @property
+    def money(self):
+        return self.__money
+    @property
+    def total(self):
+        return self.__total
+    
+        
 class Card:
     def __init__(self, id):
         self.__id = id
@@ -9,6 +30,10 @@ class Card:
     @property
     def id(self):
         return self.__id
+    
+    @property
+    def account_id(self):
+        return self.__account_id
     
     def update_account_id(self, new_account_id):
         self.__account_id = new_account_id
@@ -44,7 +69,7 @@ class Account():
     @transaction_list.setter
     def transaction_list(self, new_transaction):
         self.__transaction_list.append(new_transaction)
-
+    
     def update_money(self, money):
         self.__money += money
 
@@ -67,7 +92,6 @@ class Atm:
     def __init__(self, id, money):
         self.__id = id
         self.__money = money
-        self.__bank = None
     
     @property
     def money(self):
@@ -80,13 +104,11 @@ class Atm:
     def update_money(self, money):
         self.__money += money
     
-    def update_bank(self, bank):
-        self.__bank = bank
-    
-    def insert_card(self, card_id, pin):
-        for user in self.__bank.user_list:
+    def insert_card(self, bank, card, pin):
+        this_acc_id = card.account_id
+        for user in bank.user_list:
             for account in user.account_list:
-                if card_id == account.card.id :
+                if this_acc_id == account.id :
                     if account.card.check_pin(pin):
                         return account
         return None
@@ -94,9 +116,9 @@ class Atm:
     def deposit(self, account, money):
         if money <= 0 or self.money < money:
             return "Error"
-        account.update_money(money)
+        account.update_money(+money)
         self.update_money(-money)
-        # self.add_transaction("D", self, money, account)
+        self.add_transaction("D", self, money, account)
         return "Success"  
     
 
@@ -104,8 +126,8 @@ class Atm:
         if money <= 0 or account.money < money:
             return "Error"
         account.update_money(-money)
-        self.update_money(money)
-        # self.add_transaction("W", self, money, account)
+        self.update_money(+money)
+        self.add_transaction("W", self, money, account)
         return "Success"  
     
 
@@ -113,14 +135,14 @@ class Atm:
         if money <= 0 or old.money < money:
             return "Error"
         old.update_money(-money)
-        new.update_money(money)
-        # atm.add_transaction("T", atm, money, old)
-        # atm.add_transaction("T", atm, money, new)
+        new.update_money(+money)
+        self.add_transaction("T", self, money, old)
+        self.add_transaction("T", self, money, new)
         return "Success"
 
-    # def add_transaction(self, type, atm, money, account):
-    #     transaction = Transaction(type, atm.id, money, account.money)
-    #     account.transaction_list.append(transaction)
+    def add_transaction(self, type, atm, money, account):
+        transaction = Transaction(type, atm.id, money, account.money)
+        account.transaction_list.append(transaction)
 
 class User:
     def __init__(self, id, name):
@@ -183,17 +205,17 @@ class Bank:
             print(atm.id)
 
     def console_print(self, item_list, item, item_name):
-        return f"console.log | {self.__console_print_data(item_list, item, item_name)}"
+        return f"console.log | {self.console_print_data(item_list, item, item_name)}"
 
-    def __console_print_data(self, item_list, item, item_name):
+    def console_print_data(self, item_list, item, item_name):
         number = len(item_list)
         error_text = f"<====== Error \t  #{number}\tid :{self.id} ======>\n\t - {item_name}: "
         if item_name == "Data":
             return f"<====== Done {item_name} #{number} \tid :{item.id} ======>"
         elif item_name == "Error_01": return f"{error_text} Nothing Changed\n"
         elif item_name == "Error_02": return f"{error_text} Existed Data\n"
-        elif item_name == "Error_03": return f"{error_text} Exited Account\n"
-        elif item_name == "Error_04": return f"{error_text} Exited ATM\n"
+        elif item_name == "Error_03": return f"{error_text} Existed Account\n"
+        elif item_name == "Error_04": return f"{error_text} Existed ATM\n"
         elif item_name == "Error_05": return f"{error_text} Incorrect Data Format\n"
 
         return f"Added :{item_name} \t#{number} \tid :{item.id}"
@@ -207,7 +229,6 @@ class Bank:
     
     def __add_atm(self, atm : Atm):
         self.__atm_list.append(atm)
-        atm.update_bank(self)
         return self.console_print(self.__atm_list, atm, "Atm")
 
     def add_data(self, user, atm):
@@ -226,7 +247,6 @@ class Bank:
                     or not len(v) == 4 :
                       return self.console_print(self.__adding_log_count, self, "Error_05")
         ################################################################
-
 
         if user is not None:
             for k, v in user.items(): # k is user_id, v is [username, acc_id, card_id, money]
@@ -281,13 +301,13 @@ class Bank:
 user ={'1-1101-12345-12-0':['Harry Potter','1234567890','12345',20000],
        '1-1101-12345-13-0':['Hermione Jean Granger','0987654321','12346',1000]}
 
-user2 ={'1-2222-12345-10-4':['Nana Narak','1234567890','11109',12300],
-       '1-2222-10045-13-0':['Nunu is Nana','0828983663','12346',444],
-       '1-2222-12345-12-4':['Nullvoid Debateyourdense','32178956409','43121',40]}
-user3 = {'1-1101-12345-12-0':['Harry Potter','010101','12345',20000]}
-user4 = {'1-1101-32221-12-0':['Nani Potter','010101','12345',20000]}
-user5 = {'1-1101-32221-12-0':['Nani Potter','010201','12346',20000]}
-user6 = {'1-1101-32221-12-0':['Nani Potter']}
+# user2 ={'1-2222-12345-10-4':['Nana Narak','1234567890','11109',12300],
+#        '1-2222-10045-13-0':['Nunu is Nana','0828983663','12346',444],
+#        '1-2222-12345-12-4':['Nullvoid Debateyourdense','32178956409','43121',40]}
+# user3 = {'1-1101-12345-12-0':['Harry Potter','010101','12345',20000]}
+# user4 = {'1-1101-32221-12-0':['Nani Potter','010101','12345',20000]}
+# user5 = {'1-1101-32221-12-0':['Nani Potter','010201','12346',20000]}
+# user6 = {'1-1101-32221-12-0':['Nani Potter']}
 atm ={'1001':1000000,'1002':200000}
 
 # kanyok_bank.add_user(User("1-1101-12345-12-0", "Harry Potter"))
@@ -302,12 +322,15 @@ atm ={'1001':1000000,'1002':200000}
 def create_instance(bank_id):
     bank = Bank(bank_id)
     print(bank.add_data(user,atm))
-    print(bank.add_data(user6,atm))
+    # print(bank.add_data(user3,atm))
+    # print(bank.add_data(user6,atm))
+    # print(bank.add_data(user4,atm))
+    # print(bank.add_data(user2,atm))
+    # print(bank.add_data(user6,atm))
     return bank
 my_bank = create_instance("101")
 atm_1 = my_bank.atm_list[0]
 atm_2 = my_bank.atm_list[1]
-exit()
 # def debug():
 #     print()
 #     my_bank.show_all_data()
@@ -358,16 +381,19 @@ exit()
 # ผลที่คาดหวัง : พิมพ์ หมายเลข account ของ harry อย่างถูกต้อง และ พิมพ์หมายเลขบัตร ATM อย่างถูกต้อง
 # Ans : 12345, 1234567890, Success
 print("Test Case #1")
-def testcase_1(atm, card_id, pin):
-    if (atm.insert_card(card_id, pin) != None ):
-        print(atm.insert_card(card_id, pin).id, atm.insert_card(card_id, pin).card.id, "Success")
+def testcase_1(bank, atm, card, pin):
+    if (atm.insert_card(bank, card, pin) != None ):
+        print(atm.insert_card(bank, card, pin).id, atm.insert_card(bank, card, pin).card.id, "Success")
     else:
         print("Error")
+    print("\n",atm.insert_card(bank, card, pin))
 
-testcase_1_card_id = "12345"
-testcase_1_pin = None   
+testcase_1_account = my_bank.user_list[0].account_list[0]
+testcase_1_card = testcase_1_account.card
+testcase_1_card.update_pin("1234")
+testcase_1_pin = "1234"
 
-testcase_1(atm_1, testcase_1_card_id , testcase_1_pin)
+testcase_1(my_bank, atm_1, testcase_1_card , testcase_1_pin)
 print()
 
 
@@ -376,6 +402,7 @@ print()
 # ผลที่คาดหวัง : แสดงจำนวนเงินในบัญชีของ Hermione ก่อนฝาก หลังฝาก และ แสดง transaction
 # Hermione account before test : 1000
 # Hermione account after test : 2000
+# exit()
 
 print("Test Case #2")
 def testcase_2(atm, account, money):
@@ -466,4 +493,4 @@ print()
 # Hermione transaction : D-ATM:1002-1000-2000
 # Hermione transaction : W-ATM:1002-500-1500
 # Hermione transaction : T-ATM:1002-+10000-11500
-# my_bank.user_list[1].account_list[0].show_transaction()
+my_bank.user_list[1].account_list[0].show_transaction()
