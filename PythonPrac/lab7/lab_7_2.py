@@ -83,7 +83,7 @@ class Account:
         if not isinstance(card, Card):
             return Bank.send_message(0, f"Cannot add card. Invalid card instance: {card}")
         self.__card = card
-        return Bank.send_message(1, "Card added successfully.")
+        return Bank.send_message(1, f"Card added successfully.")
 
     def update_amount_in_account(self, money):
         self.__amount += money

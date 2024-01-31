@@ -1,5 +1,4 @@
 class Bank:
-
     user_count = 0
     atm_count = 0
     seller_count = 0
@@ -10,60 +9,80 @@ class Bank:
         self.__atm_list = []
         self.__seller_list = []
 
-    def send_message(self, message_type, message):
+
+    @staticmethod
+    def search_function_method(item ,id, instance, instance_name):
+        final_search = None
+        if isinstance(item , instance):
+            final_search = item
+            print(Bank.send_message(1, f'{instance_name} {id} searched successfully.'))
+        else :
+            print(Bank.send_message(0, f'{instance_name} {id} not found'))
+        return final_search
+
+
+    @staticmethod
+    def send_message(message_type, message):
         if message_type == 0:
-            return ("bank_message: Error "+message)
+            return ("bank_message: #Error "+message)
         elif message_type == 1:
-            return ("bank_message: Success"+message)
+            return ("bank_message: #Success "+message)
         else:
             return ("bank_message: no message text")
 
     def add_seller(self, seller):
         if not isinstance(seller, Seller):
-            return Bank.send_message(0, "add_seller <seller >not Seller instance")
+            return self.send_message(0, f"Cannot add seller. Invalid seller instance: {seller}")
         self.__seller_list += [seller]
+        return self.send_message(1, f"Seller {seller.seller_no} added successfully.")
 
     def add_atm_machine(self, atm):
         if not isinstance(atm, ATM_machine):
-            return Bank.send_message(0, "add_atm <atm> not ATM_machine instance")
+            return self.send_message(0, f"Cannot add ATM machine. Invalid ATM machine instance: {atm}")
         self.__atm_list += [atm]
-        return Bank.send_message(1, "add_atm <atm> ")
-
+        return self.send_message(1, f"ATM machine {atm.atm_no} added successfully.")
+    
     def add_user(self, user):
         if not isinstance(user, User):
-            return Bank.send_message(0, "add_user <user >not User instance")
+            return self.send_message(0, f"Cannot add user. Invalid user instance: {user}")
         self.__user_list += [user]
+        return self.send_message(1,f"User {user.citizen_id} added successfully.")
 
     def search_user_from_id(self, citizen_id):
         if not (isinstance(citizen_id, str) and len(citizen_id) == 17):
-            return Bank.send_message(0, "search_user_from_id citizen_id not id string")
+            return self.send_message(0, "Search user from ID failed. Invalid citizen ID string.")
         for user in self.__user_list:
             if user.validate_citizen_id(citizen_id):
                 return user
         return None
-
+    
 class User:
     def __init__(self, citizen_id, name):
         self.__citizen_id = citizen_id
         self.__name = name
         self.__account_list = []
 
+    @property
+    def citizen_id(self):
+        return self.__citizen_id
+
     def validate_citizen_id(self, citizen_id):
         return self.__citizen_id == citizen_id
-
+    
     def add_account(self, account):
         if not isinstance(account, Account):
-            return Bank.send_message(0, "add_account account not Account instance")
+            return Bank.send_message(0, f"Cannot add account. Invalid account instance: {account}")
         self.__account_list += [account]
+        return Bank.send_message(1, f"Account {account.account_no} added successfully.")
 
     def search_account(self, account_no):
         if not (isinstance(account_no, str) and len(account_no) == 10):
-            return Bank.send_message(0, "add_account account_no not number string")
+            return Bank.send_message(0, "Search account failed. Invalid account number string.")
         for account in self.__account_list:
             if account.validate_account_no(account_no):
                 return account
         return None
-    
+
     
 class Account:
     def __init__(self, account_no, user, amount):
@@ -73,43 +92,45 @@ class Account:
         self.__transaction = []
         self.__card = None
 
+    @property
+    def account_no(self):
+        return self.__account_no
+    
     def validate_account_no(self, account_no):
         return self.__account_no == account_no
     
     def add_card(self, card):
         if not isinstance(card, Card):
-            return Bank.send_message(0, "add_card card not Card instance")
+            return Bank.send_message(0, f"Cannot add card. Invalid card instance: {card}")
         self.__card = card
+        return Bank.send_message(1, f"Card {card.card_no} added successfully.")
 
     def update_amount_in_account(self, money):
         self.__amount += money
 
     def __add__(self, money):
         self.update_amount_in_account(+money)
-        
+
     def __sub__(self, money):
         if self.__amount < money:
-            return Bank.send_message(0, "add_card card not Card instance")
+            return Bank.send_message(0, "Withdrawal amount exceeds account balance.")
         self.update_amount_in_account(-money)
-        
-    def __rshift__(self, tuple_operand : tuple):
 
-
+    def __rshift__(self, tuple_operand):
         if not (isinstance(tuple_operand, tuple) and len(tuple_operand) == 2):
-            return Bank.send_message(0, " >> (__rshift__) tuple not Tuple instance")
+            return Bank.send_message(0, "Transfer failed. Invalid tuple instance.")
         target_account, money = tuple_operand
         if self.__amount < money:
-            return Bank.send_message(0, " >> (__rshift__) self.__amount < transfer_money")
+            return Bank.send_message(0, "Transfer failed. Insufficient funds.")
         if not isinstance(target_account, Account):
-            return Bank.send_message(0, " >> (__rshift__) tuple[0] not Account instance")
+            return Bank.send_message(0, "Transfer failed. Invalid target account instance.")
 
         if not (isinstance(tuple_operand, (int, float)) and tuple_operand > 0):
-            return Bank.send_message(0, " >> (__rshift__) tuple[1] not Int or Float instance")
+            return Bank.send_message(0, "Transfer failed. Invalid transfer amount.")
         
-        (new_account , money) = tuple_operand
         self.update_amount_in_account(-money)
-        new_account.update_amount_in_account(+money)
-        
+        target_account.update_amount_in_account(+money)
+
 class SavingAccount(Account):
 
     interest_rate = 0.5
@@ -135,6 +156,10 @@ class Card:
         self.__card_no = card_no
         self.__account = account
         self.__pin = pin
+    
+    @property
+    def card_no(self):
+        return self.__card_no
     
     def validate_card_pin(self, pin):
         return self.__pin == pin
@@ -163,18 +188,32 @@ class ATM_machine:
         if card.validate(pin):
             return Bank.send_message(1, "Insert card successful")
         return Bank.send_message(0, "Incorrect PIN")
-    
+
     def deposit(self, account, amount):
         account.update_amount_in_account(amount)
         self.update_amount_in_atm(amount)
-        return Bank.send_message(1, "Deposit successful")
-    
+        return Bank.send_message(1, "Deposit successful.")
 
     def withdraw(self, account, amount):
-        pass
+        if amount > self.withdraw_limit:
+            return Bank.send_message(0, "Withdrawal failed. Withdrawal amount exceeds limit.")
+        if account.validate_account_no(account.get_account_no()) and amount <= self.__money and amount <= account.get_amount():
+            account.update_amount_in_account(-amount)
+            self.update_amount_in_atm(-amount)
+            return Bank.send_message(1, "Withdrawal successful.")
+        return Bank.send_message(0, "Withdrawal failed. Insufficient funds or incorrect account number.")
 
-    def transfer(self,account, amount, target_account):
-        pass
+    def transfer(self, account, amount, target_account):
+        if amount <= self.__money and amount <= account.get_amount():
+            target_account.update_amount_in_account(amount)
+            account.update_amount_in_account(-amount)
+            self.update_amount_in_atm(-amount)
+            return Bank.send_message(1, "Transfer successful.")
+        return Bank.send_message(0, "Transfer failed. Insufficient funds.")
+
+    def update_amount_in_atm(self, amount):
+        self.__money += amount
+        return Bank.send_message(1, "ATM amount updated successfully.")
 
 class Seller:
     def __init__(self,seller_no,name):
@@ -182,15 +221,26 @@ class Seller:
         self.__name = name
         self.__edc_list = []
     
+    @property
+    def seller_no(self):
+        return self.__seller_no
+    
     def add_edc(self, edc):
         if not isinstance(edc, EDC_machine):
-            return Bank.send_message(0, "add_edc edc not EDC_machine instance")
+            return Bank.send_message(0, f"Cannot add EDC machine. Invalid EDC machine instance: {edc}")
+        self.__edc_list += [edc]
+        return Bank.send_message(1, f"Account {edc.edc_no} added successfully.")
+
 
 
 class EDC_machine:
     def __init__(self,edc_no,seller):
         self.__edc_no = edc_no
         self.__seller = seller
+    
+    @property
+    def edc_no(self):
+        return self.__edc_no
 
 
 
@@ -214,41 +264,38 @@ EDC = {'2101':"KFC", '2201':"Tops"}
 # TODO   : โดย Account แบ่งเป็น 2 subclass คือ Savings และ FixedDeposit
 # TODO   : โดย บัตร แบ่งเป็น 2 subclass คือ ATM และ Debit
 
+
 scb = Bank('SCB')
-scb.add_user(User('1-1101-12345-12-0','Harry Potter'))
-scb.add_user(User('1-1101-12345-13-0','Hermione Jean Granger'))
-scb.add_user(User('9-0000-00000-01-0','KFC'))
-scb.add_user(User('9-0000-00000-02-0','Tops'))
-harry = scb.search_user_from_id('1-1101-12345-12-0') 
-
-
-harry.add_account(SavingAccount('1234567890', harry, 20000))
-
-harry_account = harry.search_account('1234567890')
-
-harry_account.add_card(ATM_Card('12345', harry, '1234'))
-hermione = scb.search_user_from_id('1-1101-12345-12-0')
-hermione.add_account(SavingAccount('0987654321',hermione,2000))
-hermione_account1 = hermione.search_account('0987654321')
-hermione_account1.add_card(Debit_Card('12346',hermione_account1,'1234'))
-hermione.add_account(FixDepositAccount('0987654322',hermione,1000))
-kfc = scb.search_user_from_id('9-0000-00000-01-0')
-kfc.add_account(SavingAccount('0000000321', kfc, 0))
-tops = scb.search_user_from_id('9-0000-00000-02-0')
-tops.add_account(SavingAccount('0000000322', tops, 0))
+print(scb.add_user(User('1-1101-12345-12-0','Harry Potter')))
+print(scb.add_user(User('1-1101-12345-13-0','Hermione Jean Granger')))
+print(scb.add_user(User('9-0000-00000-01-0','KFC')))
+print(scb.add_user(User('9-0000-00000-02-0','Tops')))
+harry = Bank.search_function_method(scb.search_user_from_id('1-1101-12345-12-0'),"1-1101-12345-12-0", User, "User")
+print(harry.add_account(SavingAccount('1234567890', harry, 20000)))
+harry_account = Bank.search_function_method(harry.search_account('1234567890') ,"1234567890", Account, "Account")
+print(harry_account.add_card(ATM_Card('12345', harry, '1234')))
+hermione = Bank.search_function_method(scb.search_user_from_id('1-1101-12345-13-0'),'1-1101-12345-13-0',User,"User")
+print(hermione.add_account(SavingAccount('0987654321',hermione,2000)))
+hermione_account1 = Bank.search_function_method( hermione.search_account('0987654321'), "0987654321", Account, "Account")
+print(hermione_account1.add_card(Debit_Card('12346',hermione_account1,'1234')))
+print(hermione.add_account(FixDepositAccount('0987654322',hermione,1000)))
+kfc = Bank.search_function_method( scb.search_user_from_id('9-0000-00000-01-0'), '9-0000-00000-01-0', User, "User")
+print(kfc.add_account(SavingAccount('0000000321', kfc, 0)))
+tops = Bank.search_function_method( scb.search_user_from_id('9-0000-00000-02-0'), '9-0000-00000-02-0', User, "User")
+print(tops.add_account(SavingAccount('0000000322', tops, 0)))
 # TODO 2 : สร้าง Instance ของเครื่อง ATM
 
-scb.add_atm_machine(ATM_machine('1001',1000000))
-scb.add_atm_machine(ATM_machine('1002',200000))
+print(scb.add_atm_machine(ATM_machine('1001',1000000)))
+print(scb.add_atm_machine(ATM_machine('1002',200000)))
 
 # TODO 3 : สร้าง Instance ของ Seller และใส่เครื่อง EDC ใน Seller 
 
 temp = Seller('210','KFC')
-temp.add_edc(EDC_machine('2101',temp))
-scb.add_seller(temp)
+print(temp.add_edc(EDC_machine('2101',temp)))
+print(scb.add_seller(temp))
 temp = Seller('220',"Tops")
-temp.add_edc(EDC_machine('2201',temp))
-scb.add_seller(temp)
+print(temp.add_edc(EDC_machine('2201',temp)))
+print(scb.add_seller(temp))
 
 # TODO 4 : สร้าง method ฝาก โดยใช้ __add__ ถอน โดยใช้ __sub__ และ โอนโดยใช้ __rshift__
 # TODO   : ทดสอบการ ฝาก ถอน โอน โดยใช้ + - >> กับบัญชีแต่ละประเภท
