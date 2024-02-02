@@ -43,13 +43,22 @@ class Bank:
             print(Bank.send_message(0, f'{instance_name} {id} not found'))
         return final_search
 
+#     HEADER = '\033[95m'
+#     OKBLUE = '\033[94m'
+#     OKCYAN = '\033[96m'
+#     OKGREEN = '\033[92m'
+#     WARNING = '\033[93m'
+#     FAIL = '\033[91m'
+#     ENDC = '\033[0m'
+#     BOLD = '\033[1m'
+#     UNDERLINE = '\033[4m'
 
     @staticmethod
     def send_message(message_type, message):
         if message_type == 0:
-            return ("bank_message: #Error "+message)
+            return ('\033[92m'+"bank_message: #Error "+message+'\033[0m')
         elif message_type == 1:
-            return ("bank_message: #Success "+message)
+            return ('\033[93m'+"bank_message: #Success "+message+'\033[0m')
         elif message_type == 2:
             return ("\n============= #" + message + " =============\n")
         else:
@@ -210,7 +219,7 @@ class Account:
             account = transaction.target_account
             user_name = account.user.name
             account_id = account.account_no
-            print(user_name,"\t",account_id,":\t",service_type,"-",place_type,":",place_id,"-",amount,"-",total, sep="")
+            print("\033[96m",user_name,"\t",account_id,":\t",service_type,"-",place_type,":",place_id,"-",amount,"-",total,"\033[0m",sep="")
 
     def deposit(self, counter, amount):
         self + amount
@@ -576,6 +585,7 @@ harry_account = scb.search_account_from_card('12345')
 atm_card = harry_account.card
 print("Harry's ATM No : ",atm_card.card_no)
 print("Harry's Account No : ",harry_account.account_no)
+print("")
 print(atm_machine.insert_card(atm_card, "1234"))
 print("")
 print("Harry account before deposit : ",harry_account.amount)
@@ -702,7 +712,9 @@ print("Hermione's Account No : ",hermione_account.account_no)
 print("Tops's Account No : ", tops_account.account_no)
 print("Tops account before paid : ",tops_account.amount)
 print("Hermione account before paid : ",hermione_account.amount)
+print("")
 print(tops.paid(hermione_account,500,tops_account))
+print("")
 print("Tops account after paid : ",tops_account.amount)
 print("Hermione account after paid : ",hermione_account.amount)
 print("")
