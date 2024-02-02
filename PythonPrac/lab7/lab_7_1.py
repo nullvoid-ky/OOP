@@ -202,7 +202,7 @@ class Account:
         self.__amount += money
     
     def show_transaction_history(self):
-        new_list = self.__transaction_list[:-1]
+        new_list = self.__transaction_list
         for transaction in new_list:
             (service_type , place_type, place_id) = transaction.transaction_type
             amount =  transaction.amount
@@ -429,12 +429,13 @@ class Seller:
 
         place_name = edc.seller.name
         place_id = edc.seller.seller_no
-        new_transacetion = Transaction(("P",place_name, place_id), money, account.amount, account)
-        account.transaction_list.append(new_transacetion)
+        new_transacetion = Transaction(("P",place_name, place_id), money, target_account.amount, target_account)
+        target_account.transaction_list.append(new_transacetion)
+
         new_transacetion = Transaction(("P",place_name, place_id), money, user_account.amount, user_account)
         user_account.transaction_list.append(new_transacetion)
-
         return Bank.send_message(1, f"Paid. from account : {user_account.account_no} to {account.account_no}")
+
     def validate_seller_name(self, seller_name):
         return self.__name == seller_name
     
@@ -568,15 +569,15 @@ print(scb.send_message(2, "Succesfully Initialize Data"))
 # Harry account before deposit :  20000
 # Deposit 1000
 # Harry account after deposit :  21000
-print("### init ###")
+print("##########################\nTest Case #1\n")
 
 atm_machine = scb.search_atm_machine('1001')
 harry_account = scb.search_account_from_card('12345')
 atm_card = harry_account.card
-print("##########################\nTest Case #1\n")
 print("Harry's ATM No : ",atm_card.card_no)
 print("Harry's Account No : ",harry_account.account_no)
 print(atm_machine.insert_card(atm_card, "1234"))
+print("")
 print("Harry account before deposit : ",harry_account.amount)
 print("Deposit 1000")
 atm_machine.deposit(harry_account,1000)
@@ -594,15 +595,19 @@ print("")
 # Hermione account before withdraw :  2000
 # withdraw 1000
 # Hermione account after withdraw :  1000
-print("### init ###")
+print("##########################\nTest Case #2\n")
 
 atm_machine = Bank.search_function_method(scb.search_atm_machine('1002'), '1002', ATM_machine, "ATM_machine") 
 hermione_account = Bank.search_function_method(scb.search_account_from_card('12346'), '12346', Account, "Account")
 atm_card = hermione_account.card
-print("##########################\nTest Case #2\n")
+print("")
+
+
 print("Hermione's ATM No : ", atm_card.card_no)
 print("Hermione's Account No : ", hermione_account.account_no)
+print("")
 print(atm_machine.insert_card(atm_card, "1234"))
+print("")
 print("Hermione account before withdraw : ",hermione_account.amount)
 print("withdraw 1000")
 atm_machine.withdraw(hermione_account,1000)
@@ -620,11 +625,14 @@ print("")
 # Hermione account before transfer :  1000
 # Harry account after transfer :  11000
 # Hermione account after transfer :  11000
-print("### init ###")
+print("##########################\nTest Case #3\n")
 
 harry_account = scb.search_account_from_card('12345')
 hermione_account = scb.search_account_from_card('12346')
-print("##########################\nTest Case #3\n")
+
+print("")
+
+
 print("Harry's Account No : ",harry_account.account_no)
 print("Hermione's Account No : ", hermione_account.account_no)
 print("Harry account before transfer : ",harry_account.amount)
@@ -647,7 +655,7 @@ print("")
 # Hermione account before paid :  11000
 # KFC account after paid :  500
 # Hermione account after paid :  10500
-print("### init ###")
+print("##########################\nTest Case #4\n")
 hermione_account = Bank.search_function_method(scb.search_account_from_account_no('0987654321'), '0987654321', Account, "Account") 
 debit_card = hermione_account.card
 kfc_account = Bank.search_function_method(scb.search_account_from_account_no('0000000321'), '0000000321', Account, "Account") 
@@ -656,11 +664,12 @@ edc = kfc.search_edc_from_no('2101')
 edc.set_bank(scb)
 print("")
 
-print("##########################\nTest Case #4\n")
 print("Hermione's Debit Card No : ", debit_card.card_no)
 print("Hermione's Account No : ",hermione_account.account_no)
 print("Seller : ", kfc.name)
 print("KFC's Account No : ", kfc_account.account_no)
+
+print("")
 print("KFC account before paid : ",kfc_account.amount)
 print("Hermione account before paid : ",hermione_account.amount)
 print("")
@@ -680,17 +689,20 @@ print("")
 # Hermione account before paid :  10500
 # Tops account after paid :  500
 # Hermione account after paid :  10000
-print("### init ###")
+print("##########################\nTest Case #5\n")
 hermione_account = scb.search_account_from_account_no('0987654321')
 debit_card = hermione_account.card
 tops_account = scb.search_account_from_account_no('0000000322')
 tops = scb.search_seller('Tops')
-print("##########################\nTest Case #5\n")
+
+print("")
+
+
 print("Hermione's Account No : ",hermione_account.account_no)
 print("Tops's Account No : ", tops_account.account_no)
 print("Tops account before paid : ",tops_account.amount)
 print("Hermione account before paid : ",hermione_account.amount)
-tops.paid(hermione_account,500,tops_account)
+print(tops.paid(hermione_account,500,tops_account))
 print("Tops account after paid : ",tops_account.amount)
 print("Hermione account after paid : ",hermione_account.amount)
 print("")
@@ -700,3 +712,4 @@ print("")
 print("##########################\nTest Case #6\n")
 for account in hermione.account_list:
     account.show_transaction_history()
+print("")
