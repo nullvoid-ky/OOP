@@ -1,25 +1,25 @@
 class User:
-    """"""
+    pass
 class Account:
-    """"""
+    pass
 class SavingAccount:
-    """"""
+    pass
 class FixDepositAccount:
-    """"""
+    pass
 class Transaction:
-    """"""
+    pass
 class Card:
-    """"""
+    pass
 class ATM_Card:
-    """"""
+    pass
 class Debit_Card:
-    """"""
+    pass
 class ATM_machine:
-    """"""
+    pass
 class Seller:
-    """"""
+    pass
 class EDC_Machine:
-    """"""
+    pass
 
 
 class Bank:
@@ -28,7 +28,7 @@ class Bank:
     seller_count = 0
 
     def __init__(self,name):
-        self.__name=name
+        self.__name = name
         self.__user_list = []
         self.__atm_list = []
         self.__seller_list = []
@@ -126,6 +126,10 @@ class User:
         return self.__citizen_id
     
     @property
+    def name(self):
+        return self.__name
+    
+    @property
     def account_list(self):
         return self.__account_list
 
@@ -136,6 +140,7 @@ class User:
         if not isinstance(account, Account):
             return Bank.send_message(0, f"Cannot add account. Invalid account instance: {account}")
         self.__account_list += [account]
+        account.add_user(self)
         return Bank.send_message(1, f"Account {account.account_no} added successfully.")
 
     def search_account(self, account_no):
@@ -146,13 +151,12 @@ class User:
                 return account
         return None
 
-    
 class Account:
     def __init__(self, account_no, user, amount):
         self.__account_no = account_no
         self.__user = user
         self.__amount = amount
-        self.__transaction = []
+        self.__transaction_list = []
         self.__card = None
 
     @property
@@ -167,12 +171,27 @@ class Account:
     def card(self):
         return self.__card
     
+    @property
+    def user(self):
+        return self.__user
+    
+    @property
+    def transaction_list(self):
+        return self.__transaction_list
+
     def validate_card_in_account(self, card_no):
         return self.__card.validate_card_no(card_no)
     
     def validate_account_no(self, account_no):
         return self.__account_no == account_no
     
+    def add_user(self, user):
+        if not isinstance(user, User):
+            return Bank.send_message(0, f"Cannot add user. Invalid card instance: {user}")
+        self.__user = user
+        return Bank.send_message(1, f"Card {user.citizen_id} added successfully.")
+
+
     def add_card(self, card):
         if not isinstance(card, Card):
             return Bank.send_message(0, f"Cannot add card. Invalid card instance: {card}")
@@ -181,15 +200,32 @@ class Account:
 
     def update_amount_in_account(self, money):
         self.__amount += money
+    
+    def show_transaction_history(self):
+        new_list = self.__transaction_list[:-1]
+        for transaction in new_list:
+            (service_type , place_type, place_id) = transaction.transaction_type
+            amount =  transaction.amount
+            total = transaction.total
+            account = transaction.target_account
+            user_name = account.user.name
+            account_id = account.account_no
+            print(user_name,"\t",account_id,":\t",service_type,"-",place_type,":",place_id,"-",amount,"-",total, sep="")
 
     def deposit(self, counter, amount):
         self + amount
+        total = self.amount
+        new_transacetion = Transaction(("D","Counter", counter), amount, total, self)
+        self.__transaction_list += [new_transacetion]
         return Bank.send_message(1, "Deposit successful.")
 
-    def withdraw(self, coutner, amount):
+    def withdraw(self, counter, amount):
         if (self.validate_account_no(self.account_no)) or amount > self.__money or amount > self.amount:
             return Bank.send_message(0, "Withdrawal failed. Insufficient funds or incorrect account number.")
         self - amount
+        total = self.amount
+        new_transacetion = Transaction(("W","Counter", counter), amount, total, self)
+        self.__transaction_list += [new_transacetion]
         return Bank.send_message(1, "Withdrawal successful.")
 
     def transfer(self, counter, amount, target_account):
@@ -197,8 +233,15 @@ class Account:
             return Bank.send_message(0, "Transfer failed. Insufficient funds.")
         target_account_transfer = (target_account,amount)
         self >> target_account_transfer
-        return Bank.send_message(1, "Transfer successful.")
 
+        my_account_total = self.amount
+        new_transacetion = Transaction(("T","Counter", counter), amount, my_account_total, self)
+        self.__transaction_list += [new_transacetion]
+
+        target_account_total = target_account.amount
+        new_transacetion = Transaction(("T","Counter", counter), amount, target_account_total, target_account)
+        target_account.__transaction_list += [new_transacetion]
+        return Bank.send_message(1, "Transfer successful.")
 
     def __add__(self, money):
         self.update_amount_in_account(+money)
@@ -244,6 +287,22 @@ class Transaction:
         self.__total = total
         self.__target_account = target_account
 
+    @property
+    def transaction_type(self):
+        return self.__transaction_type
+    
+    @property
+    def amount(self):
+        return self.__amount
+    
+    @property
+    def total(self):
+        return self.__total
+    
+    @property
+    def target_account(self):
+        return self.__target_account
+    
 class Card:
     def __init__(self,card_no, account, pin):
         self.__card_no = card_no
@@ -290,7 +349,12 @@ class ATM_machine:
 
     def deposit(self, account, amount):
         account + amount
-        self - amount
+        self + amount
+
+        total = account.amount
+        new_transacetion = Transaction(("D","ATM", self.atm_no), amount, total, account)
+        account.transaction_list.append(new_transacetion)
+    
         return Bank.send_message(1, "Deposit successful.")
 
     def withdraw(self, account, amount):
@@ -299,6 +363,11 @@ class ATM_machine:
         if account.validate_account_no(account.account_no) and amount <= self.__money and amount <= account.amount:
             account - amount
             self - amount
+
+            total = account.amount
+            new_transacetion = Transaction(("W","ATM", self.atm_no), amount, total, account)
+            account.transaction_list.append(new_transacetion)
+
             return Bank.send_message(1, "Withdrawal successful.")
         return Bank.send_message(0, "Withdrawal failed. Insufficient funds or incorrect account number.")
 
@@ -307,6 +376,18 @@ class ATM_machine:
             target_account_transfer = (target_account,amount)
             account >> target_account_transfer
             self - amount
+
+
+            my_account_total = account.amount
+            new_transacetion = Transaction(("T","ATM", self.atm_no), amount, my_account_total, account)
+            account.transaction_list.append(new_transacetion)
+        
+
+
+            target_account_total = target_account.amount
+            new_transacetion = Transaction(("T","ATM", self.atm_no), amount, target_account_total, target_account)
+            target_account.transaction_list += [new_transacetion]
+        
             return Bank.send_message(1, "Transfer successful.")
         return Bank.send_message(0, "Transfer failed. Insufficient funds.")
 
@@ -334,7 +415,6 @@ class Seller:
     def name(self):
         return self.__name 
     
-    #tops.paid(hermione_account,500,tops_account)
     def paid(self, account, money, target_account):
         if not isinstance(account,Account):
             return Bank.send_message(0, f"Cannot paid. Invalid account instance: {account}")
@@ -346,6 +426,14 @@ class Seller:
         user_account = account
         target_account_transfer = (target_account, money)
         user_account >> target_account_transfer
+
+        place_name = edc.seller.name
+        place_id = edc.seller.seller_no
+        new_transacetion = Transaction(("P",place_name, place_id), money, account.amount, account)
+        account.transaction_list.append(new_transacetion)
+        new_transacetion = Transaction(("P",place_name, place_id), money, user_account.amount, user_account)
+        user_account.transaction_list.append(new_transacetion)
+
         return Bank.send_message(1, f"Paid. from account : {user_account.account_no} to {account.account_no}")
     def validate_seller_name(self, seller_name):
         return self.__name == seller_name
@@ -361,6 +449,7 @@ class Seller:
         if not isinstance(edc, EDC_machine):
             return Bank.send_message(0, f"Cannot add EDC machine. Invalid EDC machine instance: {edc}")
         self.__edc_list += [edc]
+        edc.add_seller(self)
         return Bank.send_message(1, f"Account {edc.edc_no} added successfully.")
 
 class EDC_machine:
@@ -372,6 +461,13 @@ class EDC_machine:
     @property
     def edc_no(self):
         return self.__edc_no
+    
+    @property
+    def seller(self):
+        return self.__seller
+    
+    def add_seller(self, seller):
+        self.__seller = seller
     
     def set_bank(self, bank):
         self.__bank = bank
@@ -390,8 +486,17 @@ class EDC_machine:
         user_account = (Bank.search_function_method(self.__bank.search_account_from_card(card.card_no), card.card_no, Account, "Account"))
         target_account_transfer = (account, money)
         user_account >> target_account_transfer
+        # Transaction()
+        place_name = edc.seller.name
+        place_id = edc.seller.seller_no
+        new_transacetion = Transaction(("P",place_name, place_id), money, account.amount, account)
+        account.transaction_list.append(new_transacetion)
+        new_transacetion = Transaction(("P",place_name, place_id), money, user_account.amount, user_account)
+        user_account.transaction_list.append(new_transacetion)
+        # make transaction in paid funciton
+
         return Bank.send_message(1, f"Paid. from account : {user_account.account_no} to {account.account_no}")
-#print(edc.paid(debit_card, 500, kfc_account))
+    
 ##################################################################################
 
 # กำหนด รูปแบบของ user ดังนี้ {รหัสประชาชน : [ชื่อ, ประเภทบัญชี, หมายเลขบัญชี, จำนวนเงินในบัญชี, ประเภทบัตร, หมายเลขบัตร ]}
@@ -411,8 +516,6 @@ EDC = {'2101':"KFC", '2201':"Tops"}
 # TODO   : จากข้อมูลใน user รูปแบบการนำข้อมูลไปใช้สามารถใช้ได้โดยอิสระ
 # TODO   : โดย Account แบ่งเป็น 2 subclass คือ Savings และ FixedDeposit
 # TODO   : โดย บัตร แบ่งเป็น 2 subclass คือ ATM และ Debit
-
-
 scb = Bank('SCB')
 print(scb.add_user(User('1-1101-12345-12-0','Harry Potter')))
 print(scb.add_user(User('1-1101-12345-13-0','Hermione Jean Granger')))
@@ -449,18 +552,9 @@ print(scb.send_message(2, "Succesfully Initialize Data"))
 
 # TODO 4 : สร้าง method ฝาก โดยใช้ __add__ ถอน โดยใช้ __sub__ และ โอนโดยใช้ __rshift__
 # TODO   : ทดสอบการ ฝาก ถอน โอน โดยใช้ + - >> กับบัญชีแต่ละประเภท
-
-
-
 # TODO 5 : สร้าง method insert_card, deposit, withdraw และ transfer ที่ตู้ atm และเรียกผ่าน account อีกที
 # TODO   : ทดสอบโอนเงินระหว่างบัญชีแต่ละประเภท
-
-# #clear
-# print("clear")
-# exit()
-
 # TODO 6 : สร้าง method paid ที่เครื่อง EDC และเรียกผ่าน account อีกที
-
 # TODO 7 : สร้าง method __iter__ ใน account สำหรับส่งคืน transaction เพื่อให้ใช้กับ for ได้ 
 
 # Test case #1 : ทดสอบ การฝาก จากเครื่อง ATM โดยใช้บัตร ATM ของ harry
@@ -587,7 +681,6 @@ print("")
 # Tops account after paid :  500
 # Hermione account after paid :  10000
 print("### init ###")
-
 hermione_account = scb.search_account_from_account_no('0987654321')
 debit_card = hermione_account.card
 tops_account = scb.search_account_from_account_no('0000000322')
@@ -604,3 +697,6 @@ print("")
 
 
 # Test case #7 : แสดง transaction ของ Hermione ทั้งหมด โดยใช้ for loop 
+print("##########################\nTest Case #6\n")
+for account in hermione.account_list:
+    account.show_transaction_history()
