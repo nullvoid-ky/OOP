@@ -11,3 +11,10 @@ pip3 install uvicorn
 เราสามารถเพิ่มข้อม฿ลได้เองโดยไม่ต้องเพิ่มใน swagger โดยใช้
 request.py ซึ่งใช้คำสั่ง python3 request.py
 
+สรุป GET POST PUT DELETE 
+
+GET เปรียบเสมือนการแสดงผล หรือ Output / Print
+POST เปรียบเสมือนการเพิ่มข้อมูล หรือ Add
+PUT เปรียบเสมือนการเปลี่ยนข้อมูล หรือ Edit
+DELETE เปรียบเสมือนการลบข้อมูล หรือ Delete
+

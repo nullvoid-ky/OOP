@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        form {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Todo List</h1>
+    <ul id="todo-list">
+        <!-- Todo items will be dynamically added here -->
+    </ul>
+
+    <form id="add-todo-form">
+        <label for="new-todo-id">Todo ID:</label>
+        <input type="number" id="new-todo-id" name="new-todo-id" required>
+
+        <label for="new-todo-activity">Todo Activity:</label>
+        <input type="text" id="new-todo-activity" name="new-todo-activity" required>
+
+        <button type="submit">Add</button>
+    </form>
+
+    <form id="edit-todo-form">
+        <label for="edit-todo-id">Todo ID to Edit:</label>
+        <input type="number" id="edit-todo-id" name="edit-todo-id" required>
+
+        <label for="edit-todo-activity">Updated Activity:</label>
+        <input type="text" id="edit-todo-activity" name="edit-todo-activity" required>
+
+        <button type="button" onclick="editTodo()">Edit</button>
+    </form>
+
+    <form id="delete-todo-form">
+        <label for="delete-todo-id">Todo ID to Delete:</label>
+        <input type="number" id="delete-todo-id" name="delete-todo-id" required>
+
+        <button type="button" onclick="deleteTodo()">Delete</button>
+    </form>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const todoListContainer = document.getElementById('todo-list');
+            const addTodoForm = document.getElementById('add-todo-form');
+            const editTodoForm = document.getElementById('edit-todo-form');
+            const deleteTodoForm = document.getElementById('delete-todo-form');
+
+            // Function to render the todo list
+            function renderTodoList() {
+                fetch('/todo')
+                    .then(response => response.json())
+                    .then(todoList => {
+                        todoListContainer.innerHTML = '';
+                        todoList.forEach(todo => {
+                            const listItem = document.createElement('li');
+                            listItem.textContent = `${todo.activity} (ID: ${todo.id})`;
+                            todoListContainer.appendChild(listItem);
+                        });
+                    });
+            }
+
+            // Event listener for form submission (Add Todo)
+            addTodoForm.addEventListener('submit', function (event) {
+                event.preventDefault();
+                const newTodoIdInput = document.getElementById('new-todo-id');
+                const newTodoActivityInput = document.getElementById('new-todo-activity');
+
+                const newTodo = {
+                    "id": parseInt(newTodoIdInput.value),
+                    "activity": newTodoActivityInput.value
+                };
+
+                fetch('/todo', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(newTodo),
+                })
+                .then(response => response.json())
+                .then(() => {
+                    newTodoIdInput.value = '';
+                    newTodoActivityInput.value = '';
+                    renderTodoList();
+                });
+            });
+
+            // Function to handle Edit Todo button click
+            window.editTodo = function () {
+                const editTodoIdInput = document.getElementById('edit-todo-id');
+                const editTodoActivityInput = document.getElementById('edit-todo-activity');
+
+                const updatedTodo = {
+                    "activity": editTodoActivityInput.value
+                };
+
+                const todoId = parseInt(editTodoIdInput.value);
+
+                fetch(`/todo/${todoId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(updatedTodo),
+                })
+                .then(response => response.json())
+                .then(() => {
+                    editTodoIdInput.value = '';
+                    editTodoActivityInput.value = '';
+                    renderTodoList();
+                })
+                .catch(error => console.error('Error updating todo:', error));
+            };
+
+            // Function to handle Delete Todo button click
+            window.deleteTodo = function () {
+                const deleteTodoIdInput = document.getElementById('delete-todo-id');
+                const todoIdToDelete = parseInt(deleteTodoIdInput.value);
+
+                fetch(`/todo/${todoIdToDelete}`, {
+                    method: 'DELETE',
+                })
+                .then(response => response.json())
+                .then(() => {
+                    deleteTodoIdInput.value = '';
+                    renderTodoList();
+                })
+                .catch(error => console.error('Error deleting todo:', error));
+            };
+
+            // Initial rendering of the todo list
+            renderTodoList();
+        });
+    </script>
+</body>
+</html>
