@@ -1,0 +1,13 @@
+อย่างแรกต้องมี python3 จากนั้น
+pip3 install fastapi
+pip3 install uvicorn
+
+แล้วใช้ uvicorn main:app
+เพื่อลองใช้อันแรก
+
+ซึ่งถ้าจะทำงาน todo ก็ใช้ uvicorn todo:app
+จากนั้นลองใส่ข้อมูลผ่าน swagger เองใน link http://127.0.0.1:8000/docs#/
+
+เราสามารถเพิ่มข้อม฿ลได้เองโดยไม่ต้องเพิ่มใน swagger โดยใช้
+request.py ซึ่งใช้คำสั่ง python3 request.py
+
