@@ -76,7 +76,7 @@ class Bank:
         self.__atm_list += [atm]
         return self.send_message(1, f"ATM machine {atm.atm_no} added successfully.")
     
-    def add_user(self, user):
+    def add_user(self, user : User):
         if not isinstance(user, User):
             return self.send_message(0, f"Cannot add user. Invalid user instance: {user}")
         self.__user_list += [user]
@@ -352,6 +352,8 @@ class ATM_machine:
         return self.__atm_no == atm_no
     
     def insert_card(self, card : Card, pin):
+        if not isinstance(card, ATM_Card):
+            return Bank.send_message(0, "Incorrect Card")
         if card.validate_card_pin(pin):
             return Bank.send_message(1, "Insert card successful")
         return Bank.send_message(0, "Incorrect PIN")

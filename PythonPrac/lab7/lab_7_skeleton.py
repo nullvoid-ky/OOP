@@ -122,7 +122,9 @@ harry = scb.search_user_from_id('1-1101-12345-12-0')
 harry.add_account(SavingAccount('1234567890', harry, 20000))
 harry_account = harry.search_account('1234567890')
 harry_account.add_card(ATM_Card('12345', harry, '1234'))
+
 hermione = scb.search_user_from_id('1-1101-12345-12-0')
+
 hermione.add_account(SavingAccount('0987654321',hermione,2000))
 hermione_account1 = hermione.search_account('0987654321')
 hermione_account1.add_card(Debit_Card('12346',hermione_account1,'1234'))
