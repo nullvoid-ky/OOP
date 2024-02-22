@@ -18,3 +18,9 @@ POST เปรียบเสมือนการเพิ่มข้อมู
 PUT เปรียบเสมือนการเปลี่ยนข้อมูล หรือ Edit
 DELETE เปรียบเสมือนการลบข้อมูล หรือ Delete
 
+fetch('/todo', {
+    method: 'POST',
+    body: JSON.stringify(newTodo),
+})
+
+คือการใส่ตัวแปล newTodo ลงไปใน /todo/{newTodo} โดยแปลงจาก JSON เปน string เพื่อนำไปใช้ต่อใน python

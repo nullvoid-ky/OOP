@@ -5,7 +5,7 @@ import uvicorn
 app = FastAPI()
 
 # Serve static files from the "static" directory
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/rent-a-mate", StaticFiles(directory="rent-a-mate"), name="rent-a-mate")
 
 todo_list = [
     {"id": 1, "activity": "Buy groceries"},
