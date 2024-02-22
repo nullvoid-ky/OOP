@@ -24,3 +24,7 @@ fetch('/todo', {
 })
 
 คือการใส่ตัวแปล newTodo ลงไปใน /todo/{newTodo} โดยแปลงจาก JSON เปน string เพื่อนำไปใช้ต่อใน python
+
+
+enumerate(item_list) -> tuple(index, item)
+
